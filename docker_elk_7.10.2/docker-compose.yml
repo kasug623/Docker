@@ -1,0 +1,131 @@
+version: '3.2'
+
+services:
+  elasticsearch:
+    build:
+      context: ./elasticsearch
+      dockerfile: Dockerfile
+      args:
+        ELK_VERSION: ${ELK_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-elasticsearch'
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,z
+      #- ./elasticsearch:/usr/share/elasticsearch/data:z
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: -Xmx256m -Xms256m
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+      discovery.type: single-node
+    networks:
+      elk:
+        ipv4_address: ${ELASTIC_IP}
+
+  kibana:
+    build:
+      context: ./kibana
+      dockerfile: Dockerfile
+      args:
+        ELK_VERSION: ${ELK_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-kibana'
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
+    ports:
+      - "5601:5601"
+    environment:
+      KIBANA_USERNAME: kibana
+      KIBANA_PASSWORD: ${KIBANA_PASSWORD}
+    networks:
+      elk:
+        ipv4_address: ${KIBANA_IP}
+    depends_on:
+      - elasticsearch
+
+  logstash:
+    build:
+      context: ./logstash
+      dockerfile: Dockerfile
+      args:
+        ELK_VERSION: ${ELK_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-logstash'
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro,Z
+    ports:
+      - "5044:5044"
+      - "5001:5000/tcp"
+      - "5002:5000/udp"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: -Xmx256m -Xms256m
+      LOGSTASH_INTERNAL_PASSWORD: ${LOGSTASH_INTERNAL_PASSWORD}
+    networks:
+      elk:
+        ipv4_address: ${LOGSTASH_IP}
+    depends_on:
+      - elasticsearch
+
+  apm-server:
+    build:
+      context: ./apm-server
+      dockerfile: Dockerfile
+      args:
+        ELK_VERSION: ${ELK_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-apm-server'
+    volumes:
+      - ./apm-server/config/apm-server.yml:/usr/share/apm-server/apm-server.yml:ro,Z
+    ports:
+      - "8200:8200"
+    environment:
+      APM-SERVER_USERNAME: apm-server
+      APM-SERVER_PASSWORD: ${APM-SERVER_PASSWORD}
+    networks:
+      elk:
+        ipv4_address: ${APM_SERVER_IP}
+    depends_on:
+      - elasticsearch
+
+  nodejs:
+    build:
+      context: ./nodejs
+      dockerfile: Dockerfile
+      args:
+        NODEJS_VERSION: ${NODEJS_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-nodejs'
+    tty: true
+    stdin_open: true
+    volumes:
+        - ./nodejs/src:/usr/src/:Z
+    ports: 
+      - '3000:3000'
+    networks:
+      elk:
+        ipv4_address: ${NODEJS_IP}
+    depends_on:
+      - elasticsearch
+
+  jenkins:
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+    container_name: '${COMPOSE_PROJECT_NAME}-jenkins'
+    #volumes:
+      # - ./jenkins/jenkins_home:/var/jenkins_home
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    networks:
+      elk:
+        ipv4_address: ${JENKINS_IP}
+    depends_on:
+      - elasticsearch
+
+networks:
+  elk:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${SUBNET}
+          gateway: ${DEFAULT_GATEWAY}
