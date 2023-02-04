@@ -7,7 +7,12 @@ const HOST = '0.0.0.0';
 // App
 const app = express();
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+  res.redirect(req.baseUrl + '/public/index.html');
+});
+
+app.get('/public', (req, res) => {
+  // res.sendFile(__dirname + '/public/index.html');
+  res.redirect(req.baseUrl + '/public/index.html');
 });
 
 app.listen(PORT, HOST);
