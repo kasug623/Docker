@@ -1,4 +1,4 @@
-version: '3.2'
+version: '3.8'
 
 services:
   elasticsearch:
@@ -19,7 +19,7 @@ services:
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
       discovery.type: single-node
     networks:
-      elk:
+      elastic-net:
         ipv4_address: ${ELASTIC_IP}
 
   kibana:
@@ -34,10 +34,11 @@ services:
     ports:
       - "5601:5601"
     environment:
-      KIBANA_USERNAME: kibana
-      KIBANA_PASSWORD: ${KIBANA_PASSWORD}
+      ELASTIC_USERNAME: elastic
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+      ELASTIC_IP: ${ELASTIC_IP}
     networks:
-      elk:
+      elastic-net:
         ipv4_address: ${KIBANA_IP}
     depends_on:
       - elasticsearch
@@ -60,8 +61,9 @@ services:
     environment:
       LS_JAVA_OPTS: -Xmx256m -Xms256m
       LOGSTASH_INTERNAL_PASSWORD: ${LOGSTASH_INTERNAL_PASSWORD}
+      ELASTIC_IP: ${ELASTIC_IP}
     networks:
-      elk:
+      elastic-net:
         ipv4_address: ${LOGSTASH_IP}
     depends_on:
       - elasticsearch
@@ -78,11 +80,37 @@ services:
     ports:
       - "8200:8200"
     environment:
-      APM-SERVER_USERNAME: apm-server
-      APM-SERVER_PASSWORD: ${APM-SERVER_PASSWORD}
+      ELASTIC_USERNAME: elastic
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+      ELASTIC_IP: ${ELASTIC_IP}
     networks:
-      elk:
+      elastic-net:
         ipv4_address: ${APM_SERVER_IP}
+    depends_on:
+      - elasticsearch
+
+  heartbeat:
+    build:
+      context: ./heartbeat
+      dockerfile: Dockerfile
+      args:
+        ELK_VERSION: ${ELK_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-heartbeat'
+    volumes:
+      - ./heartbeat/config/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro,Z
+    #ports:
+    #  - "8200:8200"
+    environment:
+      ELASTIC_USERNAME: elastic
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+      ELASTIC_IP: ${ELASTIC_IP}
+      KIBANA_IP: ${KIBANA_IP}
+      APM_SERVER_IP: ${APM_SERVER_IP}
+      NODEJS_IP: ${NODEJS_IP}
+      JENKINS_IP: ${JENKINS_IP}
+    networks:
+      elastic-net:
+        ipv4_address: ${HEARTBEAT_IP}
     depends_on:
       - elasticsearch
 
@@ -91,17 +119,96 @@ services:
       context: ./nodejs
       dockerfile: Dockerfile
       args:
+        ELK_VERSION: ${ELK_VERSION}
         NODEJS_VERSION: ${NODEJS_VERSION}
     container_name: '${COMPOSE_PROJECT_NAME}-nodejs'
     tty: true
     stdin_open: true
     volumes:
         - ./nodejs/src:/usr/src/:Z
+        - ./nodejs/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro,Z
     ports: 
       - '3000:3000'
     networks:
-      elk:
+      elastic-net:
         ipv4_address: ${NODEJS_IP}
+    depends_on:
+      - elasticsearch
+
+  deno:
+    build:
+      context: ./deno
+      dockerfile: Dockerfile
+      args:
+        ELK_VERSION: ${ELK_VERSION}
+        DENO_VERSION: ${DENO_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-deno'
+    tty: true
+    stdin_open: true
+    volumes:
+        - ./deno/src:/usr/src:Z
+        - ./deno/start-up:/root/start-up:ro,Z
+        #- ./deno/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro,Z
+    ports: 
+      - '1993:1993'
+    networks:
+      elastic-net:
+        ipv4_address: ${DENO_IP}
+    depends_on:
+      - elasticsearch
+
+  flask:
+    build:
+      context: ./flask
+      dockerfile: Dockerfile
+      args:
+        ELK_VERSION: ${ELK_VERSION}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-flask'
+    volumes:
+        - ./flask/app:/usr/src/app:Z
+    ports:
+      - "5003:5000"
+    networks:
+      elastic-net:
+        ipv4_address: ${FLASK_IP}
+    depends_on:
+      - elasticsearch
+
+  apache:
+    build:
+      context: ./apache
+      dockerfile: Dockerfile
+      args:
+        ELK_VERSION: ${ELK_VERSION}
+        APACHE_VERSION: ${APACHE_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-apache'
+    volumes:
+      - ./apache/src:/usr/local/apache2/htdocs
+    ports:
+      - "80:80"
+    networks:
+      elastic-net:
+        ipv4_address: ${APACHE_IP}
+    depends_on:
+      - elasticsearch
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+      args:
+        ELK_VERSION: ${ELK_VERSION}
+        NGINX_VERSION: ${NGINX_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-nginx'
+    volumes:
+      - ./nginx/config/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/src:/usr/share/nginx/html
+    ports:
+      - "81:80"
+    networks:
+      elastic-net:
+        ipv4_address: ${NGINX_IP}
     depends_on:
       - elasticsearch
 
@@ -116,14 +223,15 @@ services:
       - "8080:8080"
       - "50000:50000"
     networks:
-      elk:
+      elastic-net:
         ipv4_address: ${JENKINS_IP}
     depends_on:
       - elasticsearch
 
 networks:
-  elk:
+  elastic-net:
     driver: bridge
+    name: e-net
     ipam:
       driver: default
       config:
