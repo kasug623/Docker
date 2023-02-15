@@ -1,0 +1,38 @@
+# Define a directory to load monitor definitions from. Definitions take the form
+# of individual yaml files.
+heartbeat.config.monitors:
+  # Directory + glob pattern to search for configuration files
+  path: ${path.config}/monitors.d/*.yml
+  # If enabled, heartbeat will periodically check the config.monitors path for changes
+  reload.enabled: false
+  # How often to check for changes
+  reload.period: 5s
+
+
+heartbeat.monitors:
+- type: icmp
+  id: ping-apm-server
+  name: APM SERVER Ping
+  schedule: '@every 5s'
+  hosts: ["${APM_SERVER_IP}"]
+
+- type: tcp
+  id: Jenkins-TCP-Echo
+  name: Jenkins TCP Echo
+  schedule: '@every 5s'
+  hosts: ["${JENKINS_IP}:8080"]
+
+- type: http
+  id: nodejs-status
+  name: NodeJS Status
+  schedule: '@every 5s'
+  urls: ["http://${NODEJS_IP}:3000"]
+
+#processors:
+#  - add_cloud_metadata: ~
+#  - add_docker_metadata: ~
+
+output.elasticsearch:
+  hosts: ${ELASTIC_IP}:9200
+  username: ${ELASTIC_USERNAME}
+  password: ${ELASTIC_PASSWORD}
