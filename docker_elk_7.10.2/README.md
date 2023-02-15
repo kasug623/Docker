@@ -30,5 +30,5 @@ sudo docker compose up -d kibana
 stop container and delete image.  
 (Even if you delete image, the cache of image still exits so you can get the same image again quickly.)
 ```
-sudo docker-compose down --rmi all --volumes --remove-orphans
+sudo docker compose down --rmi all --volumes --remove-orphans
 ```
