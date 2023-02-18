@@ -119,14 +119,12 @@ services:
       context: ./nodejs
       dockerfile: Dockerfile
       args:
-        ELK_VERSION: ${ELK_VERSION}
         NODEJS_VERSION: ${NODEJS_VERSION}
     container_name: '${COMPOSE_PROJECT_NAME}-nodejs'
     tty: true
     stdin_open: true
     volumes:
         - ./nodejs/src:/usr/src/:Z
-        - ./nodejs/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro,Z
     ports: 
       - '3000:3000'
     networks:
@@ -185,8 +183,15 @@ services:
     container_name: '${COMPOSE_PROJECT_NAME}-apache'
     volumes:
       - ./apache/src:/usr/local/apache2/htdocs
+      - ./apache/config/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./apache/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro,Z
     ports:
       - "80:80"
+    environment:
+      ELASTIC_USERNAME: elastic
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+      ELASTIC_IP: ${ELASTIC_IP}
+      KIBANA_IP: ${KIBANA_IP}
     networks:
       elastic-net:
         ipv4_address: ${APACHE_IP}
@@ -220,8 +225,6 @@ services:
         ELK_VERSION: ${ELK_VERSION}
         RUBY_VERSION: ${RUBY_VERSION}
     container_name: '${COMPOSE_PROJECT_NAME}-rails'
-    #volumes:
-      #- ./rails/src:/usr/src/
     ports:
       - "3001:3000"
     networks:
@@ -229,7 +232,6 @@ services:
         ipv4_address: ${RAILS_IP}
     depends_on:
       - elasticsearch
-
 
   jenkins:
     build:
