@@ -10,7 +10,8 @@ WORKDIR /usr/src
 # ENTRYPOINT ["/bin/sh", "-c", "while :; do sleep 10; done"]
 # docker exec and npm init
 
-RUN npm install -g express \
-    && npm install -g nodemon
+RUN npm install -g express --save\
+    && npm install -g nodemon --save\
+    && npm install -g elastic-apm-node --save
 
 CMD ["npm", "start"]
