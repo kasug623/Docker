@@ -2,10 +2,11 @@
 var apm = require('elastic-apm-node').start({
   // Override service name from package.json
   // Allowed characters: a-z, A-Z, 0-9, -, _, and space
-  serviceName: '',
+
+  serviceName: 'three.js on node',
 
   // Use if APM Server requires a token
-  secretToken: '',
+  //secretToken: '',
 
   // Set custom APM Server URL (default: http://localhost:8200)
   serverUrl: 'http://172.16.4.0:8200'
@@ -26,10 +27,6 @@ app.get('/', (req, res) => {
 app.get('/public', (req, res) => {
   // res.sendFile(__dirname + '/public/index.html');
   res.redirect(req.baseUrl + '/public/index.html');
-});
-
-app.get('/public/geometry-udemy', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
 });
 
 app.listen(PORT, HOST);
