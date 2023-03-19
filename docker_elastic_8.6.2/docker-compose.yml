@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    build:
+      context: ./elasticsearch
+      dockerfile: Dockerfile
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-elasticsearch'
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,z
+    environment:
+      ES_JAVA_OPTS: -Xmx256m -Xms256m
+      discovery.type: single-node
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      elastic-net:
+        ipv4_address: ${ELASTICSEARCH_IP}
+
+  kibana:
+    build:
+      context: ./kibana
+      dockerfile: Dockerfile
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-kibana'
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
+    environment:
+      KIBANA_USERNAME: kibana_system
+      ELASTICSEARCH_IP: ${ELASTICSEARCH_IP}
+      KIBANA_IP: ${KIBANA_IP}
+    ports:
+      - "5601:5601"
+    networks:
+      elastic-net:
+        ipv4_address: ${KIBANA_IP}
+    depends_on:
+      - elasticsearch
+
+  nodejs:
+    build:
+      context: ./nodejs
+      dockerfile: Dockerfile
+      args:
+        NODEJS_VERSION: ${NODEJS_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-nodejs'
+    tty: true
+    stdin_open: true
+    volumes:
+        - ./nodejs/src:/usr/src/:Z
+    ports: 
+      - '3000:3000'
+    networks:
+      elastic-net:
+        ipv4_address: ${NODEJS_IP}
+    depends_on:
+      - elasticsearch
+
+networks:
+  elastic-net:
+    driver: bridge
+    name: e-net
+    ipam:
+      driver: default
+      config:
+        - subnet: ${SUBNET}
+          gateway: ${DEFAULT_GATEWAY}
