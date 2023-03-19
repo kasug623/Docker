@@ -11,6 +11,7 @@ WORKDIR /usr/src
 # docker exec and npm init
 
 RUN npm install -g express \
-    && npm install -g nodemon
+    && npm install -g nodemon \
+    && npm install -g elastic-apm-node
 
 CMD ["npm", "start"]
