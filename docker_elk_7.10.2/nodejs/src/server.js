@@ -2,6 +2,7 @@
 var apm = require('elastic-apm-node').start({
   // Override service name from package.json
   // Allowed characters: a-z, A-Z, 0-9, -, _, and space
+
   serviceName: 'three.js on node',
 
   // Use if APM Server requires a token
@@ -31,4 +32,3 @@ app.get('/public', (req, res) => {
 app.listen(PORT, HOST);
 console.log(`Running on http://${HOST}:${PORT}`);
 app.use('/public', express.static(__dirname + '/public'));
-app.use('/public/geometry-udemy', express.static(__dirname + '/public/geometry-udemy'));

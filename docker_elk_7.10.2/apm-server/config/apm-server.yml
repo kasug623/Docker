@@ -200,8 +200,8 @@ apm-server:
     allow_headers : []
 
     # Custom HTTP headers to add to RUM responses, e.g. for security policy compliance.
-    #response_headers :
-    #  X-My-Header: Contents of the header
+    response_headers :
+      X-My-Header: Contents of the header
 
     # Regexp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
     # If the regexp matches, the stacktrace frame is considered to be a library frame.
