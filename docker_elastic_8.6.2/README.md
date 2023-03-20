@@ -21,6 +21,7 @@ $ docker compose exec elasticsearch bin/elasticsearch-reset-password -u elastic
 $ docker compose exec elasticsearch bin/elasticsearch-reset-password -u kibana_system
 $ docker compose exec kibana bin/kibana-keystore create
 $ docker compose exec kibana bin/kibana-keystore add elasticsearch.password
+## enter kibana_system's password
 ```
 
 3. restart containers which uses "elastic passwords" except an elasticsearch container.
@@ -31,7 +32,7 @@ $ sudo docker compose restart kibana
 4. log in Kibana
 When you access, you have to use basic-authentication.  
 - user:elastic  
-- password:the new passwors created by the above command.
+- password:the new passwords created by the above command.
 
 # Balus
 stop container and delete image.  
