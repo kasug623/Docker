@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: docker.io/bitnami/mariadb:10.6
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MARIADB_USER=bn_moodle
+      - MARIADB_DATABASE=bitnami_moodle
+      - MARIADB_CHARACTER_SET=utf8mb4
+      - MARIADB_COLLATE=utf8mb4_unicode_ci
+    container_name: '${COMPOSE_PROJECT_NAME}-mariadb'
+    volumes:
+      - './mariadb/mariadb_data:/bitnami/mariadb'
+    networks:
+      moodle-network:
+        ipv4_address: 192.168.0.1
+
+  moodle:
+    image: docker.io/bitnami/moodle:4.1
+    ports:
+      - '80:8080'
+      - '443:8443'
+    environment:
+      - MOODLE_USERNAME=moom
+      - MOODLE_PASSWORD=bitnami
+      - MOODLE_DATABASE_HOST=mariadb
+      - MOODLE_DATABASE_PORT_NUMBER=3306
+      - MOODLE_DATABASE_USER=bn_moodle
+      - MOODLE_DATABASE_NAME=bitnami_moodle
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+    container_name: '${COMPOSE_PROJECT_NAME}-moodle'
+    volumes:
+      - './moodle/moodle_data:/bitnami/moodle'
+      - './moodle/moodledata_data:/bitnami/moodledata'
+    networks:
+      moodle-network:
+        ipv4_address: 192.168.0.2
+    depends_on:
+      - mariadb
+
+networks:
+  moodle-network:
+    driver: bridge
+    name: m-net
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/24
+          gateway: 192.168.0.254
