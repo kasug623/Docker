@@ -1,0 +1,155 @@
+version: '3'
+
+services:
+  pc-1:
+    build:
+      context: ./PC-1
+      dockerfile: Dockerfile
+      args:
+        PC_1_VERSION: ${PC_1_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-pc-1'
+    hostname: pc1
+    privileged: true
+    environment:
+      NET_1_DOCKER_GATEWAY: ${NET_1_DOCKER_GATEWAY}
+      PC_1_GATEWAY: ${ROUTER_1_NET_1_IP}
+    networks:
+      net-1:
+        ipv4_address: ${PC_1_NET_1_IP}
+
+  pc-2:
+    build:
+      context: ./PC-2
+      dockerfile: Dockerfile
+      args:
+        PC_2_VERSION: ${PC_2_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-pc-2'
+    hostname: pc2
+    privileged: true
+    environment:
+      NET_2_DOCKER_GATEWAY: ${NET_3_DOCKER_GATEWAY}
+      PC_2_GATEWAY: ${ROUTER_3_NET_3_IP}
+    networks:
+      net-3:
+        ipv4_address: ${PC_2_NET_3_IP}
+
+  pc-3:
+    build:
+      context: ./PC-3
+      dockerfile: Dockerfile
+      args:
+        PC_3_VERSION: ${PC_3_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-pc-3'
+    hostname: pc3
+    privileged: true
+    environment:
+      NET_4_DOCKER_GATEWAY: ${NET_4_DOCKER_GATEWAY}
+      PC_3_GATEWAY: ${ROUTER_3_NET_4_IP}
+    networks:
+      net-4:
+        ipv4_address: ${PC_3_NET_4_IP}
+
+  pc-4:
+    build:
+      context: ./PC-4
+      dockerfile: Dockerfile
+      args:
+        PC_4_VERSION: ${PC_4_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-pc-4'
+    hostname: pc4
+    privileged: true
+    environment:
+      NET_5_DOCKER_GATEWAY: ${NET_5_DOCKER_GATEWAY}
+      PC_4_GATEWAY: ${ROUTER_3_NET_5_IP}
+    networks:
+      net-5:
+        ipv4_address: ${PC_4_NET_5_IP}
+
+  router-1:
+    build:
+      context: ./Router1
+      dockerfile: Dockerfile
+      args:
+        ROUTER_1_VERSION: ${ROUTER_1_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-router-1'
+    hostname: router1
+    privileged: true
+    networks:
+      net-1:
+        ipv4_address: ${ROUTER_1_NET_1_IP}
+      net-2:
+        ipv4_address: ${ROUTER_1_NET_2_IP}
+
+  router-2:
+    build:
+      context: ./Router2
+      dockerfile: Dockerfile
+      args:
+        ROUTER_2_VERSION: ${ROUTER_2_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-router-2'
+    hostname: router2
+    privileged: true
+    networks:
+      net-2:
+        ipv4_address: ${ROUTER_2_NET_2_IP}
+      net-3:
+        ipv4_address: ${ROUTER_2_NET_3_IP}
+
+  router-3:
+    build:
+      context: ./Router3
+      dockerfile: Dockerfile
+      args:
+        ROUTER_3_VERSION: ${ROUTER_3_VERSION}
+    container_name: '${COMPOSE_PROJECT_NAME}-router-3'
+    hostname: router3
+    privileged: true
+    networks:
+      net-3:
+        ipv4_address: ${ROUTER_3_NET_3_IP}
+      net-4:
+        ipv4_address: ${ROUTER_3_NET_4_IP}
+      net-5:
+        ipv4_address: ${ROUTER_3_NET_5_IP}
+
+networks:
+  net-1:
+    driver: bridge
+    name: o-net1
+    ipam:
+      driver: default
+      config:
+        - subnet: ${NET_1}
+          gateway: ${NET_1_DOCKER_GATEWAY}
+  net-2:
+    driver: bridge
+    name: o-net2
+    ipam:
+      driver: default
+      config:
+        - subnet: ${NET_2}
+          gateway: ${NET_2_DOCKER_GATEWAY}
+  net-3:
+    driver: bridge
+    name: o-net3
+    ipam:
+      driver: default
+      config:
+        - subnet: ${NET_3}
+          gateway: ${NET_3_DOCKER_GATEWAY}
+  net-4:
+    driver: bridge
+    name: o-net4
+    ipam:
+      driver: default
+      config:
+        - subnet: ${NET_4}
+          gateway: ${NET_4_DOCKER_GATEWAY}
+  net-5:
+    driver: bridge
+    name: o-net5
+    ipam:
+      driver: default
+      config:
+        - subnet: ${NET_5}
+          gateway: ${NET_5_DOCKER_GATEWAY}
