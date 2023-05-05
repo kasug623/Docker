@@ -5,6 +5,7 @@
 - https://www.intellilink.co.jp/business/security/cyberrange.aspx
 
 # How to Start
+takes a few minutes to start web
 ```
 $ sudo docker compose up -d
 ```
