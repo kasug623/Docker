@@ -5,13 +5,13 @@
 - https://www.intellilink.co.jp/business/security/cyberrange.aspx
 
 # How to Start
-takes a few minutes to start web
-```
+takes 10+ minutes to start web
+```bash
 $ sudo docker compose up -d
 ```
 
 # Balus
-```
+```bash
 $ sudo docker compose down --rmi all --volumes --remove-orphans \
 && sudo rm -rf ./mariadb/mariadb_data/* \
 && sudo rm -rf ./moodle/moodle_data/* \
