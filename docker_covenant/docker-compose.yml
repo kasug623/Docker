@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  covenant:
+    build:
+      context: ./Covenant/Covenant
+      dockerfile: Dockerfile
+    container_name: '${COMPOSE_PROJECT_NAME}-covenant'
+    ports:
+      - '7446:7443'
+      - '86:80'
+      - '446:443'
+    networks:
+      covenant-network:
+        ipv4_address: 192.168.4.1
+
+networks:
+  covenant-network:
+    driver: bridge
+    name: c-net
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.4.0/24
+          gateway: 192.168.4.254
